@@ -5,7 +5,54 @@ from services.notifications_activities import *
 from services.user_activities import *
 from services.create_activity import *
 from services.create_reply import *
-@@ -65,6 +66,11 @@ def data_home():
+from services.search_activities import *
+from services.message_groups import *
+from services.messages import *
+from services.create_message import *
+from services.show_activity import *
+app = Flask(__name__)
+frontend = os.getenv('FRONTEND_URL')
+backend = os.getenv('BACKEND_URL')
+origins = [frontend, backend]
+cors = CORS(
+  app, 
+  resources={r"/api/*": {"origins": origins}},
+  expose_headers="location,link",
+  allow_headers="content-type,if-modified-since",
+  methods="OPTIONS,GET,HEAD,POST"
+)
+@app.route("/api/message_groups", methods=['GET'])
+def data_message_groups():
+  user_handle  = 'andrewbrown'
+  model = MessageGroups.run(user_handle=user_handle)
+  if model['errors'] is not None:
+    return model['errors'], 422
+  else:
+    return model['data'], 200
+@app.route("/api/messages/@<string:handle>", methods=['GET'])
+def data_messages(handle):
+  user_sender_handle = 'andrewbrown'
+  user_receiver_handle = request.args.get('user_reciever_handle')
+  model = Messages.run(user_sender_handle=user_sender_handle, user_receiver_handle=user_receiver_handle)
+  if model['errors'] is not None:
+    return model['errors'], 422
+  else:
+    return model['data'], 200
+  return
+@app.route("/api/messages", methods=['POST','OPTIONS'])
+@cross_origin()
+def data_create_message():
+  user_sender_handle = 'andrewbrown'
+  user_receiver_handle = request.json['user_receiver_handle']
+  message = request.json['message']
+  model = CreateMessage.run(message=message,user_sender_handle=user_sender_handle,user_receiver_handle=user_receiver_handle)
+  if model['errors'] is not None:
+    return model['errors'], 422
+  else:
+    return model['data'], 200
+  return
+@app.route("/api/activities/home", methods=['GET'])
+def data_home():
   data = HomeActivities.run()
   return data, 200
 
